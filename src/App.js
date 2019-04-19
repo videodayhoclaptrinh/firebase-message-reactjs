@@ -23,6 +23,7 @@ class App extends Component {
         this._showTopic     = this._showTopic.bind(this);
         this._subscribeTopic    = this._subscribeTopic.bind(this);
         this._unSubcribeTopic   = this._unSubcribeTopic.bind(this);
+        this._unSubscribeTopic  = this._unSubscribeTopic.bind(this);
     }
 
     componentDidMount(){
@@ -165,6 +166,30 @@ class App extends Component {
         });
     }
 
+    _unSubscribeTopic(topic){
+        fetch( "https://iid.googleapis.com/iid/v1:batchRemove" , {
+            cache: 'no-cache', 
+            credentials: 'same-origin', 
+            headers: {
+                'Content-Type'  : 'application/json',
+                "Authorization" : "key=AIzaSyDm6SBmHIH1QjVJ6dq5aItqdJfFJlHCSI4"
+            },
+            method: 'POST', 
+            body:JSON.stringify({
+                to: "/topics/"+topic,
+                registration_tokens: [this.state.token]
+            })
+        })
+        .then(response => response.json()) 
+        .then((rs) => {
+            console.log(rs)
+            this._showTopic();
+        })
+        .catch((err) => {
+            console.log(err)
+        });
+    }
+
     _unSubcribeTopic(topic){
         let messaging = firebase.messaging();
         console.log(messaging);
@@ -185,7 +210,7 @@ class App extends Component {
                                         <li key={index}>
                                             {topic.name}&ensp;
                                             <span onClick={()=>this.setState({toToken: "/topics/"+topic.name})} className="badge badge-primary">Send Msg</span>&ensp;   
-                                            <span onClick={this._unSubcribeTopic.bind(this, topic.name)} className="badge badge-danger">Unsubscribe</span>
+                                            <span onClick={this._unSubscribeTopic.bind(this, topic.name)} className="badge badge-danger">Unsubscribe</span>
                                         </li>
                                     )
                                 })

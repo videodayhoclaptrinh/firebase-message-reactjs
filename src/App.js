@@ -37,6 +37,7 @@ class App extends Component {
                     this.setState({token: currentToken});
                     // sendTokenToServer(currentToken);
                     // updateUIForPushEnabled(currentToken);
+                    this._showTopic();
                 } else {
                     // Show permission request.
                     console.log('No Instance ID token available. Request permission to generate one.');
@@ -105,6 +106,7 @@ class App extends Component {
         .then(response => response.json()) 
         .then((rs) => {
             console.log(rs)
+            this._showTopic();
         })
         .catch((err) => {
             console.log(err)
@@ -124,20 +126,22 @@ class App extends Component {
         .then(response => response.json()) 
         .then((rs) => {
             let topics = [];
-            for (var key in rs.rel.topics) {
-                // skip loop if the property is from prototype
-                if (!rs.rel.topics.hasOwnProperty(key)) continue;
-          
-                topics.push({name: key});
+            if(rs.hasOwnProperty("rel")){
+                for (var key in rs.rel.topics) {
+                    // skip loop if the property is from prototype
+                    if (!rs.rel.topics.hasOwnProperty(key)) continue;
+              
+                    topics.push({name: key});
+                }
+                this.setState({ topics: topics });
             }
-            this.setState({ topics: topics })
         })
         .catch((err) => {
             console.log(err)
         });
     }
 
-    _subscribeTopic(){
+    _subscribeTopic(topic){
         fetch( "https://iid.googleapis.com/iid/v1:batchAdd" , {
             cache: 'no-cache', 
             credentials: 'same-origin', 
@@ -147,13 +151,14 @@ class App extends Component {
             },
             method: 'POST', 
             body:JSON.stringify({
-                to: "/topics/vcrx",
+                to: "/topics/"+topic,
                 registration_tokens: [this.state.token]
             })
         })
         .then(response => response.json()) 
         .then((rs) => {
             console.log(rs)
+            this._showTopic();
         })
         .catch((err) => {
             console.log(err)
@@ -168,13 +173,11 @@ class App extends Component {
     render() {
         return (
             <div className="container">
-                <div className="col-md-6 offset-md-3">
+                <div className="col-md-8 offset-md-2">
                     <p>Your token: {this.state.token}</p>
-                    <span className="btn btn-danger btn-sm" onClick={this._showTopic}>Show topic</span>&ensp;   
-                    <span className="btn btn-success btn-sm" onClick={this._createTopic.bind(this,"vcrx")}>Create topic</span>&ensp;   
-                    <span className="btn btn-info btn-sm" onClick={this._subscribeTopic}>Subscribe topic</span>
+                    <hr className="my-4"></hr>
                     <div>
-                        <p className="h4">Topics: </p>
+                        <p className="h3">Topics: </p>
                         <ul>
                             {
                                 this.state.topics.map((topic,index)=>{
@@ -189,7 +192,9 @@ class App extends Component {
                             }
                         </ul>
                     </div>
+                    <hr className="my-4"></hr>
                     <form>
+                        <p className="h4">Gửi tin nhắn: </p>
                         <div className="form-group">
                             <label>Token</label>
                             <input defaultValue={this.state.toToken} onChange={(e)=>{this.setState({toToken:e.target.value})}} type="text" className="form-control" placeholder="Enter token" />
@@ -199,6 +204,24 @@ class App extends Component {
                             <input defaultValue={this.state.msg} onChange={(e)=>{this.setState({msg:e.target.value})}} type="text" className="form-control" placeholder="Message" />
                         </div>
                         <span onClick={this._sendMsg.bind(this, this.state.msg, this.state.toToken)} className="btn btn-primary btn-sm">Send msg</span>
+                    </form>
+                    <hr className="my-4"></hr>
+                    <form>
+                        <p className="h4">Tạo mới topic: </p>
+                        <div className="form-group">
+                            <label>Topic name</label>
+                            <input defaultValue={this.state.topic} onChange={(e)=>{this.setState({topic:e.target.value})}} type="text" className="form-control" placeholder="Enter topic name" />
+                        </div>
+                        <span onClick={this._createTopic.bind(this,this.state.topic)} className="btn btn-primary btn-sm">Create topic</span>
+                    </form>
+                    <hr className="my-4"></hr>
+                    <form>
+                        <p className="h4">Subcribe topic: </p>
+                        <div className="form-group">
+                            <label>Topic name</label>
+                            <input defaultValue={this.state.topic} onChange={(e)=>{this.setState({topic:e.target.value})}} type="text" className="form-control" placeholder="Enter topic name" />
+                        </div>
+                        <span onClick={this._subscribeTopic.bind(this,this.state.topic)} className="btn btn-primary btn-sm">Subcribe topic</span>
                     </form>
                 </div>
             </div>
